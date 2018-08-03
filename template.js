@@ -17,7 +17,7 @@
  * 6. The last parameter accepted by the returned function is the number of
  * times the new string is to be written to the console log.
  * 
- * @param {string} str A string which may contain zero or more occurrances of
+ * @param {string} template A string which may contain zero or more occurrances of
  * a placeholder. 
  * @param {object} [delims={open:'*(', close:')*'}] An object defining override
  * opening and closing delimiter values used to surround the placeholders
@@ -25,36 +25,52 @@
  * values for the placeholders, as well as a count which designates the number
  * of times the generated string should be console logged.
  */
-function template(str, delims = {open:'*(', close:')*'}) {
+function template(template, delims = {open:'*(', close:')*'}) {
   // Create the placeholder string and count the number of times it occurs
   // within the template string
   const placeholder = `${delims.open}value${delims.close}`;
   let noPlaceholders = 0;
 
-  let placeholderIndex = str.indexOf(placeholder);
+  let placeholderIndex = template.indexOf(placeholder);
   while (placeholderIndex > -1) {
     noPlaceholders += 1;
-    placeholderIndex = (str.indexOf(placeholder, placeholderIndex+1));
+    placeholderIndex = (template.indexOf(placeholder, placeholderIndex+1));
   }
   
   // Return a function that replaces the placeholders with the values provided
   // as parameters. The last parameter specifies the number of times the result
   // is to be written to the console.
   return function (parameters) {
-    if ((arguments.length - 1) !== noPlaceholders) {
+    // Validate the parameter list
+    if ( noPlaceholders > 0 && (arguments.length !== (noPlaceholders + 1))) {
       return null;
     }
 
-    // Write the result to the console log 
-    for (i = (arguments.length - 1); i > 0; i -= 1) {
-      console.log(str);
+    // Replace placeholders with their corresponding values from the
+    // parameter list
+    let result = '';
+
+    if (noPlaceholders === 0) {
+      result = template;
+    } else {
+      const substrings = template.split(placeholder);
+     for (i = 0; i < substrings.length; i += 1) {
+        result = i === (arguments.length - 1)
+          ? result + substrings[i]
+          : result + substrings[i] + arguments[i];
+      }
     }
 
-    return str; // template renderer usually returns a string
+    // Write the result to the console log 
+    for (i = 0; i < arguments[arguments.length - 1]; i += 1) {
+      console.log(result);
+    }
+
+    return result; // template renderer usually returns a string
   };
 }
 
-let result = template('See the quick brown fox?');
+let result = template('See the something brown fox?');
 result(1);
 result = template('See the *(value)* brown fox?');
 result('quick', 3);
