@@ -26,7 +26,6 @@
 //
 //
 // Now it's your turn!
-
 var template = function(str, options) {
   // Establish the opening and closing delimiter strings
   var openDelimiter = '*(';
@@ -37,18 +36,19 @@ var template = function(str, options) {
   }
 
   // Create a regex pattern for matching the opening OR closing delimiter
-  var reOpenPattern = openDelimiter.split('').map((character) => '\\' + character).join('');
-  var reClosePattern = closeDelimiter.split('').map((character) => '\\' + character).join('');
-  var pattern = '(' + reOpenPattern + ' )([\\s\\S]*?)( ' + reClosePattern + ')';
-  var rePattern = new RegExp('(' + reOpenPattern + ' )([\\s\\S]*?)( ' + reClosePattern + ')', 'g');
-  console.log(rePattern);
+  var reOpenPattern = openDelimiter.split('').map((character) => {return '\\' + character;}).join('');
+  var reClosePattern = closeDelimiter.split('').map((character) => {return '\\' + character;}).join('');
+  var rePattern = new RegExp('(' + reOpenPattern + ' [\\s\\S]*? ' + reClosePattern + ')+?', 'g');
 
-  // Create an array of placeholder strings present occur within the template string
-  var placeholders = [];
-  //var templateStrings = str.split(/(\*\( )([\s\S]*?)( \)\*)/g); // Most relevent KEEP!!!
+  // Subdivide the template string into an array of its component parts
   var templateStrings = str.split(rePattern);
-  console.log('templateStrings: ', templateStrings);
-  
+  var placeholders = [];
+  templateStrings.forEach(function(currentStr) {
+    if (currentStr.startsWith(openDelimiter)) {
+      placeholders.push(currentStr);
+    }
+  });
+
   // Return a function that replaces the placeholders with the values provided
   // as parameters. The last parameter specifies the number of times the result
   // is to be written to the console.
@@ -65,12 +65,16 @@ var template = function(str, options) {
     if (placeholders.length === 0) {
       result = str;
     } else {
-      const substrings = str.split(placeholder);
-     for (i = 0; i < substrings.length; i += 1) {
-        result = i === (arguments.length - 1)
-          ? result + substrings[i]
-          : result + substrings[i] + arguments[i];
-      }
+      var currentArgument = 0;
+      functionArgs = arguments;
+      templateStrings.forEach(function(currentStr) {
+        if (placeholders.includes(currentStr)) {
+          result += functionArgs[currentArgument];
+          currentArgument += 1;
+        } else {
+          result += currentStr;
+        }
+      });
     }
 
     // Write the result to the console log 
