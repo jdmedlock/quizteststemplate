@@ -52,32 +52,35 @@ var template = function(str, options) {
   // Return a function that replaces the placeholders with the values provided
   // as parameters. The last parameter specifies the number of times the result
   // is to be written to the console.
-  return function(...args) {
-    // Replace placeholders with their corresponding values from the
-    // parameter list
-    var result = '';
-
-    if (args.length === 1) {
-      result = str;
-    } else {
-      var currentArgument = 0;
-      templateStrings.forEach(function(currentStr) {
-        if (placeholders.includes(currentStr)) {
-          result += args[currentArgument];
-          currentArgument += 1;
-        } else {
-          result += currentStr;
-        }
-      });
-    }
-
-    // Write the result to the console log 
-    for (i = 0; i < args[arguments.length - 1]; i += 1) {
-      console.log(result);
-    }
-
-    return result; // template renderer usually returns a string
-  };
+  return new Function('a', 'b', " \
+    // Validate the parameter list \
+    if ( placeholders.length > 0 && (arguments.length !== (placeholders.length + 1))) { \
+      return null; \
+    } \
+    // Replace placeholders with their corresponding values from the \
+    // parameter list \
+    var result = ''; \
+    if (placeholders.length === 0) { \
+      result = str; \
+    } else { \
+      var currentArgument = 0; \
+      functionArgs = arguments; \
+      templateStrings.forEach(function(currentStr) { \
+        if (placeholders.includes(currentStr)) { \
+          result += functionArgs[currentArgument]; \
+          currentArgument += 1; \
+        } else { \
+          result += currentStr; \
+        } \
+      }); \
+    } \
+    // Write the result to the console log \
+    for (i = 0; i < arguments[arguments.length - 1]; i += 1) { \
+      console.log(result); \
+    } \
+    return result; // template renderer usually returns a string \
+  "
+  );
 
 };
 
